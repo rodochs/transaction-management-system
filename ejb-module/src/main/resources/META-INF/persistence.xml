@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <persistence xmlns="https://jakarta.ee/xml/ns/persistence" version="3.1">
-    <persistence-unit name="beneficioPU" transaction-type="JTA">
+    <persistence-unit name="beneficioPU" transaction-type="RESOURCE_LOCAL">
         <class>com.transaction.beneficio.ejb.domain.Beneficio</class>
-        <!-- Outras entidades (ContaBeneficio, TransacaoBeneficio, etc.) serão adicionadas nos próximos passos -->
+        <class>com.transaction.beneficio.ejb.domain.Cliente</class>
+        <class>com.transaction.beneficio.ejb.domain.ContaBeneficio</class>
+        <class>com.transaction.beneficio.ejb.domain.TransacaoBeneficio</class>
 
         <properties>
             <property name="jakarta.persistence.jdbc.driver" value="org.h2.Driver"/>
@@ -11,7 +13,7 @@
             <property name="jakarta.persistence.jdbc.password" value=""/>
 
             <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
-            <property name="hibernate.hbm2ddl.auto" value="none"/>
+            <property name="hibernate.hbm2ddl.auto" value="create-drop"/>
             <property name="hibernate.show_sql" value="true"/>
             <property name="hibernate.format_sql" value="true"/>
         </properties>
