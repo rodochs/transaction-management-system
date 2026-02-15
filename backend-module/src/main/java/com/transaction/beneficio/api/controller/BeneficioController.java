@@ -1,4 +1,4 @@
-package com.example.backend;
+package com.transaction.beneficio.api.controller;
 
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
