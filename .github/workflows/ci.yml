@@ -12,5 +12,19 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Build backend
-        run: mvn -B -f backend-module clean package
+      - name: Backend tests (backend-module)
+        run: mvn -q -f backend-module/pom.xml test
+
+      - name: EJB tests (ejb-module)
+        run: mvn -q -f ejb-module/pom.xml test
+
+      - name: Frontend tests (frontend)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Run frontend tests
+        working-directory: frontend
+        run: npm test
