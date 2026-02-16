@@ -39,8 +39,9 @@ describe('TransferService', () => {
       expect(result).toEqual(mockResult);
     });
 
-    const req = httpMock.expectOne('/api/v1/transfers');
-    expect(req.request.method).toBe('POST');
+    const req = httpMock.expectOne((requestReceived) => {
+      return requestReceived.method === 'POST' && requestReceived.url.endsWith('/api/v1/transfers');
+    });
     expect(req.request.body).toEqual(request);
     req.flush(mockResult);
   });

@@ -4,9 +4,14 @@
       <h1 class="dashboard-title">Gestão de Benefícios</h1>
       <p class="dashboard-subtitle">Visualize os benefícios disponíveis e seus valores.</p>
     </div>
-    <button type="button" class="refresh-button" (click)="loadBeneficios()" [disabled]="loading()">
-      Recarregar
-    </button>
+    <div class="dashboard-header__actions">
+      <button type="button" class="refresh-button" (click)="loadBeneficios()" [disabled]="loading()">
+        Recarregar
+      </button>
+      <button type="button" class="primary-button" (click)="openTransferModal()" [disabled]="loading()">
+        Nova transferência
+      </button>
+    </div>
   </header>
 
   <div class="dashboard-content" *ngIf="loading(); else loadedState">
@@ -34,4 +39,9 @@
       </div>
     </ng-template>
   </ng-template>
+  <app-transfer-modal
+    *ngIf="showTransferModal()"
+    (closed)="showTransferModal.set(false)"
+    (completed)="handleTransferCompleted()"
+  ></app-transfer-modal>
 </section>
