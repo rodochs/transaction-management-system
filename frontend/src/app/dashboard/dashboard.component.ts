@@ -33,7 +33,6 @@ export class DashboardComponent implements OnInit {
       .pipe(
         catchError((err) => {
           this.error.set('Não foi possível carregar os benefícios. Tente novamente.');
-          console.error('Erro ao carregar benefícios', err);
           return of([] as Beneficio[]);
         }),
         finalize(() => this.loading.set(false))

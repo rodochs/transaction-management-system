@@ -30,7 +30,9 @@ describe('BeneficioService', () => {
       expect(beneficios).toEqual(mockResponse);
     });
 
-    const req = httpMock.expectOne('/api/v1/beneficios');
+    const req = httpMock.expectOne((request) => {
+      return request.method === 'GET' && request.url.endsWith('/api/v1/beneficios');
+    });
     expect(req.request.method).toBe('GET');
     req.flush(mockResponse);
   });
@@ -48,8 +50,9 @@ describe('BeneficioService', () => {
       expect(beneficio).toEqual(mockBeneficio);
     });
 
-    const req = httpMock.expectOne('/api/v1/beneficios/1');
-    expect(req.request.method).toBe('GET');
+    const req = httpMock.expectOne((request) => {
+      return request.method === 'GET' && request.url.endsWith('/api/v1/beneficios/1');
+    });
     req.flush(mockBeneficio);
   });
 });
