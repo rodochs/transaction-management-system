@@ -65,6 +65,10 @@ public class ContaBeneficio {
         return saldo;
     }
 
+    public void setSaldo(BigDecimal saldo) {
+        this.saldo = saldo;
+    }
+
     public Long getVersion() {
         return version;
     }
