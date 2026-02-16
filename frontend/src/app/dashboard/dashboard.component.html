@@ -8,8 +8,17 @@
       <button type="button" class="btn btn--outline" (click)="loadAllData()" [disabled]="loading()">
         <span class="btn__icon">↻</span> Atualizar
       </button>
+      <button type="button" class="btn btn--secondary" (click)="openBeneficioModal()" [disabled]="loading()">
+        <span class="btn__icon">🎁</span> Novo Benefício
+      </button>
+      <button type="button" class="btn btn--secondary" (click)="openClienteModal()" [disabled]="loading()">
+        <span class="btn__icon">👤</span> Novo Colaborador
+      </button>
+      <button type="button" class="btn btn--secondary" (click)="openContaModal()" [disabled]="loading()">
+        <span class="btn__icon">📋</span> Nova Conta
+      </button>
       <button type="button" class="btn btn--primary" (click)="openTransferModal()" [disabled]="loading()">
-        <span class="btn__icon">+</span> Nova Transferência
+        <span class="btn__icon">💸</span> Nova Transferência
       </button>
     </div>
   </header>
@@ -138,4 +147,27 @@
     (closed)="showTransferModal.set(false)"
     (completed)="handleTransferCompleted()"
   ></app-transfer-modal>
+
+  <!-- Beneficio Modal -->
+  <app-beneficio-modal
+    *ngIf="showBeneficioModal()"
+    [beneficio]="editingBeneficio()"
+    (closed)="showBeneficioModal.set(false); editingBeneficio.set(null)"
+    (saved)="handleBeneficioSaved()"
+  ></app-beneficio-modal>
+
+  <!-- Cliente Modal -->
+  <app-cliente-modal
+    *ngIf="showClienteModal()"
+    [cliente]="editingCliente()"
+    (closed)="showClienteModal.set(false); editingCliente.set(null)"
+    (saved)="handleClienteSaved()"
+  ></app-cliente-modal>
+
+  <!-- Conta Modal -->
+  <app-conta-modal
+    *ngIf="showContaModal()"
+    (closed)="showContaModal.set(false)"
+    (saved)="handleContaSaved()"
+  ></app-conta-modal>
 </section>

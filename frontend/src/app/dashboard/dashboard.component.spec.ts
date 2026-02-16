@@ -4,9 +4,11 @@ import { DashboardComponent } from './dashboard.component';
 import { BeneficioService } from '../core/beneficio.service';
 import { ContaBeneficioService } from '../core/conta-beneficio.service';
 import { TransacaoBeneficioService } from '../core/transacao-beneficio.service';
+import { ClienteService } from '../core/cliente.service';
 import { Beneficio } from '../shared/models/beneficio.model';
 import { ContaBeneficio } from '../shared/models/conta-beneficio.model';
 import { TransacaoBeneficio } from '../shared/models/transacao-beneficio.model';
+import { Cliente } from '../shared/models/cliente.model';
 import { By } from '@angular/platform-browser';
 
 class BeneficioServiceMock {
@@ -21,17 +23,23 @@ class TransacaoBeneficioServiceMock {
   listarTransacoes: () => Observable<TransacaoBeneficio[]> = () => of([]);
 }
 
+class ClienteServiceMock {
+  getClientes: () => Observable<Cliente[]> = () => of([]);
+}
+
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
   let fixture: ComponentFixture<DashboardComponent>;
   let beneficioService: BeneficioServiceMock;
   let contaBeneficioService: ContaBeneficioServiceMock;
   let transacaoBeneficioService: TransacaoBeneficioServiceMock;
+  let clienteService: ClienteServiceMock;
 
   beforeEach(async () => {
     beneficioService = new BeneficioServiceMock();
     contaBeneficioService = new ContaBeneficioServiceMock();
     transacaoBeneficioService = new TransacaoBeneficioServiceMock();
+    clienteService = new ClienteServiceMock();
 
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
@@ -39,6 +47,7 @@ describe('DashboardComponent', () => {
         { provide: BeneficioService, useValue: beneficioService },
         { provide: ContaBeneficioService, useValue: contaBeneficioService },
         { provide: TransacaoBeneficioService, useValue: transacaoBeneficioService },
+        { provide: ClienteService, useValue: clienteService },
       ],
     }).compileComponents();
   });
@@ -60,6 +69,7 @@ describe('DashboardComponent', () => {
     beneficioService.getBeneficios = () => of(beneficiosMock);
     contaBeneficioService.getContas = () => of(contasMock);
     transacaoBeneficioService.listarTransacoes = () => of([]);
+    clienteService.getClientes = () => of([]);
 
     createComponent();
     fixture.detectChanges();
@@ -73,6 +83,7 @@ describe('DashboardComponent', () => {
     beneficioService.getBeneficios = () => of([]);
     contaBeneficioService.getContas = () => of([]);
     transacaoBeneficioService.listarTransacoes = () => of([]);
+    clienteService.getClientes = () => of([]);
 
     createComponent();
     fixture.detectChanges();
@@ -91,6 +102,7 @@ describe('DashboardComponent', () => {
     beneficioService.getBeneficios = () => of([]);
     contaBeneficioService.getContas = () => of(contasMock);
     transacaoBeneficioService.listarTransacoes = () => of([]);
+    clienteService.getClientes = () => of([]);
 
     createComponent();
     fixture.detectChanges();

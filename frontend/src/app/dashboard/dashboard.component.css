@@ -81,6 +81,18 @@
   background: rgba(255, 255, 255, 0.25);
 }
 
+.btn--secondary {
+  background: rgba(255, 255, 255, 0.9);
+  color: #1e3a5f;
+  font-size: 0.8rem;
+  padding: 0.6rem 1rem;
+}
+
+.btn--secondary:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
