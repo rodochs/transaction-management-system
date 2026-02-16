@@ -1,0 +1,51 @@
+<div class="modal-backdrop">
+  <div class="modal">
+    <header class="modal__header">
+      <h2>{{ isEditing ? 'Editar Colaborador' : 'Novo Colaborador' }}</h2>
+      <button type="button" class="modal__close" (click)="close()" [disabled]="loading()" aria-label="Fechar">
+        ×
+      </button>
+    </header>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="modal__body">
+      <div class="form-field">
+        <label for="nome">Nome Completo *</label>
+        <input
+          id="nome"
+          type="text"
+          formControlName="nome"
+          placeholder="Ex: João da Silva"
+          [class.form-field__input--invalid]="form.controls.nome.invalid && form.controls.nome.touched"
+        />
+        <span class="form-field__error" *ngIf="form.controls.nome.invalid && form.controls.nome.touched">
+          Nome é obrigatório (mínimo 3 caracteres)
+        </span>
+      </div>
+
+      <div class="form-field">
+        <label for="email">E-mail *</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="email@empresa.com"
+          [class.form-field__input--invalid]="form.controls.email.invalid && form.controls.email.touched"
+        />
+        <span class="form-field__error" *ngIf="form.controls.email.invalid && form.controls.email.touched">
+          E-mail válido é obrigatório
+        </span>
+      </div>
+
+      <p class="modal__message modal__message--error" *ngIf="error()">{{ error() }}</p>
+
+      <footer class="modal__footer">
+        <button type="button" class="button button--secondary" (click)="close()" [disabled]="loading()">
+          Cancelar
+        </button>
+        <button type="submit" class="button button--primary" [disabled]="loading() || form.invalid">
+          {{ loading() ? 'Salvando...' : (isEditing ? 'Salvar Alterações' : 'Criar Colaborador') }}
+        </button>
+      </footer>
+    </form>
+  </div>
+</div>

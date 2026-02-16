@@ -1,0 +1,14 @@
+<article class="card">
+  <header class="card-header">
+    <h3 class="card-title">{{ beneficio.nome }}</h3>
+    <span class="card-tag" [class.card-tag--inactive]="!beneficio.ativo">
+      {{ beneficio.ativo ? 'Ativo' : 'Inativo' }}
+    </span>
+  </header>
+
+  <p class="card-description">{{ beneficio.descricao }}</p>
+
+  <footer class="card-footer">
+    <span class="card-amount">{{ beneficio.valor | currency:'BRL':'symbol':'1.2-2' }}</span>
+  </footer>
+</article>

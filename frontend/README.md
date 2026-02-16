@@ -1,59 +1,61 @@
-# Frontend
+# Frontend - Sistema de Gestão de Benefícios
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.4.
+Aplicação Angular para gerenciamento de benefícios corporativos.
 
-## Development server
+## Tecnologias
 
-To start a local development server, run:
+- **Angular 21** com Standalone Components
+- **TypeScript** com strict mode
+- **Vitest** para testes unitários
+- **RxJS** para programação reativa
+
+## Desenvolvimento
 
 ```bash
+# Instalar dependências
+npm install
+
+# Servidor de desenvolvimento (http://localhost:4200)
 ng serve
+
+# Executar testes
+npm test
+
+# Build de produção
+npm run build
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Estrutura
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+```
+src/app/
+├── core/                    # Serviços e configurações
+│   ├── beneficio.service.ts
+│   ├── cliente.service.ts
+│   ├── conta-beneficio.service.ts
+│   ├── transacao-beneficio.service.ts
+│   └── transfer.service.ts
+├── dashboard/               # Componente principal
+│   ├── beneficio-modal/     # Modal CRUD de benefícios
+│   ├── cliente-modal/       # Modal CRUD de colaboradores
+│   ├── conta-modal/         # Modal criação de contas
+│   └── transfer-modal/      # Modal de transferências
+└── shared/                  # Modelos e componentes compartilhados
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Funcionalidades
 
-```bash
-ng generate --help
+- ✅ Dashboard com resumo de saldos e contas
+- ✅ CRUD completo de Benefícios
+- ✅ CRUD completo de Colaboradores
+- ✅ Criação de Contas de Benefício
+- ✅ Transferências entre contas
+- ✅ Histórico de transações
+
+## Configuração da API
+
+O endpoint da API está configurado em `src/app/core/api.config.ts`:
+
+```typescript
+export const API_BASE_URL = 'http://localhost:8080';
 ```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

@@ -6,13 +6,17 @@ public class ContaBeneficioResponse {
 
     private Long id;
     private Long clienteId;
+    private String clienteNome;
     private Long beneficioId;
+    private String beneficioNome;
     private BigDecimal saldo;
 
-    public ContaBeneficioResponse(Long id, Long clienteId, Long beneficioId, BigDecimal saldo) {
+    public ContaBeneficioResponse(Long id, Long clienteId, String clienteNome, Long beneficioId, String beneficioNome, BigDecimal saldo) {
         this.id = id;
         this.clienteId = clienteId;
+        this.clienteNome = clienteNome;
         this.beneficioId = beneficioId;
+        this.beneficioNome = beneficioNome;
         this.saldo = saldo;
     }
 
@@ -24,8 +28,16 @@ public class ContaBeneficioResponse {
         return clienteId;
     }
 
+    public String getClienteNome() {
+        return clienteNome;
+    }
+
     public Long getBeneficioId() {
         return beneficioId;
+    }
+
+    public String getBeneficioNome() {
+        return beneficioNome;
     }
 
     public BigDecimal getSaldo() {

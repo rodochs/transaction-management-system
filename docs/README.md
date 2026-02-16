@@ -1,96 +1,190 @@
 # Sistema de Gestão de Benefícios Corporativos
 
-Plataforma para gestão de benefícios de funcionários, com foco em transferências seguras entre contas de benefício, arquitetura em camadas e alta testabilidade.
+![CI](https://github.com/rodochs/transaction-management-system/actions/workflows/ci.yml/badge.svg)
+![Java](https://img.shields.io/badge/Java-17-orange)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-green)
+![Angular](https://img.shields.io/badge/Angular-21-red)
+![License](https://img.shields.io/badge/License-MIT-blue)
+
+Plataforma para gestão de benefícios corporativos, com foco em **transferências seguras entre contas**, arquitetura em camadas e alta testabilidade. Este projeto demonstra domínio de boas práticas em desenvolvimento fullstack com Java, Spring Boot, Jakarta EE (EJB) e Angular.
+
+---
+
+## 📋 Índice
+
+- [Objetivo do Sistema](#-objetivo-do-sistema)
+- [Destaques Técnicos](#-destaques-técnicos)
+- [Arquitetura](#️-arquitetura)
+- [Boas Práticas Implementadas](#-boas-práticas-implementadas)
+- [Como Executar](#-como-executar)
+- [Estrutura de Módulos](#-estrutura-de-módulos)
+- [Tecnologias](#-tecnologias)
+- [Testes e Qualidade](#-testes-e-qualidade)
+- [Documentação da API](#-documentação-da-api)
+- [Critérios de Avaliação Atendidos](#-critérios-de-avaliação-atendidos)
 
 ---
 
 ## 🎯 Objetivo do Sistema
 
-- **O que o sistema resolve**
-  - Centraliza o cadastro de benefícios corporativos.
-  - Permite gerenciar contas de benefício de cada colaborador.
-  - Oferece operações de transferência entre contas com regras de negócio consistentes.
+Sistema completo para gestão de benefícios corporativos que permite:
 
-- **Público-alvo**
-  - Times de engenharia que desejam avaliar arquitetura em camadas (DB → EJB → Backend → Frontend).
-  - Avaliação técnica de boas práticas em Java, Spring Boot, Jakarta EE (EJB) e Angular.
+- **CRUD de Benefícios** - Cadastro, consulta, atualização e exclusão de tipos de benefícios (Vale Alimentação, Vale Refeição, etc.)
+- **CRUD de Clientes/Colaboradores** - Gestão completa de colaboradores com nome e email
+- **Gestão de Contas de Benefício** - Criação e consulta de contas vinculando colaboradores a benefícios
+- **Transferências Seguras** - Transferências entre contas com validação de saldo e controle de concorrência
+- **Histórico de Transações** - Rastreabilidade completa de todas as operações
 
 ---
 
-## 🏗️ Visão de Arquitetura
+## ⭐ Destaques Técnicos
 
-O sistema é dividido em quatro camadas principais:
+### Correção do Bug EJB (Requisito Principal)
+O módulo EJB original continha um bug crítico na operação de transferência:
+- ❌ Não verificava saldo disponível
+- ❌ Não utilizava locking para controle de concorrência
+- ❌ Poderia gerar inconsistências em acessos simultâneos
 
-- **Banco de Dados**
-  - Modelo relacional para benefícios, contas de benefício e transações.
-  - Utiliza H2 em desenvolvimento/teste; scripts em `db/` permitem portabilidade para outros bancos.
+**Solução implementada:**
+- ✅ Validação completa de parâmetros e saldo
+- ✅ **Pessimistic Locking** (`LockModeType.PESSIMISTIC_WRITE`) para garantir consistência
+- ✅ **Optimistic Locking** com `@Version` nas entidades
+- ✅ Transações gerenciadas com `@TransactionAttribute(REQUIRED)`
+- ✅ Exceções de negócio específicas (`SaldoInsuficienteException`, `EntidadeNaoEncontradaException`)
+- ✅ Testes de concorrência com múltiplas threads
 
-- **Camada EJB (Core de Negócio)**
-  - Implementa as regras de negócio mais sensíveis (por exemplo, transferência entre contas, controle de concorrência e integridade transacional).
-  - Utiliza Jakarta EE / EJB 4.0 com JPA e locking otimista/pessimista quando necessário.
+### Arquitetura Desacoplada
+- Interface `TransferCorePort` permite trocar implementação EJB por outra sem alterar o backend
+- DTOs para separação entre camadas de API e domínio
+- Repositórios Spring Data JPA com queries otimizadas
 
-- **Backend Spring Boot (API de Aplicação)**
-  - Exposição da API REST pública.
-  - Orquestração das operações de negócio através de um contrato (`TransferCorePort`) que desacopla o backend da implementação EJB.
-  - Uso de DTOs, Bean Validation e `@ControllerAdvice` para tratamento consistente de erros.
+### Frontend Moderno
+- Angular 21 com **Signals** para gerenciamento de estado reativo
+- Componentes standalone com **ChangeDetectionStrategy.OnPush**
+- Design responsivo com CSS moderno (gradientes, sombras, animações)
 
-- **Frontend Angular**
-  - Interface web que consome a API REST.
-  - Telas de visualização de benefícios, saldos e fluxo de transferência.
+---
 
-Fluxo resumido de uma operação de transferência:
+## 🏗️ Arquitetura
 
-```text
-Frontend (Angular)
-    → Backend (Spring Boot / API REST)
-        → Core de Negócio (EJB via TransferCorePort)
-            → Banco de Dados (H2 / SQL)
+O sistema segue uma **arquitetura em camadas** clara e bem definida:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    FRONTEND (Angular 21)                     │
+│  • Dashboard com saldos e transações                        │
+│  • Modal de transferência com validação                     │
+│  • Componentes reutilizáveis                                │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼ HTTP/REST
+┌─────────────────────────────────────────────────────────────┐
+│               BACKEND (Spring Boot 3.2.5)                    │
+│  • Controllers REST com Swagger/OpenAPI                     │
+│  • DTOs com Bean Validation                                 │
+│  • GlobalExceptionHandler para erros consistentes           │
+│  • TransferService orquestrando operações                   │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼ TransferCorePort
+┌─────────────────────────────────────────────────────────────┐
+│                 CORE DE NEGÓCIO (EJB 4.0)                    │
+│  • BeneficioEjbService com locking pessimista               │
+│  • Validações de negócio                                    │
+│  • Controle transacional                                    │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼ JPA/Hibernate
+┌─────────────────────────────────────────────────────────────┐
+│                   BANCO DE DADOS (H2/SQL)                    │
+│  • Schema normalizado                                       │
+│  • Foreign keys e constraints                               │
+│  • Dados de seed para demonstração                          │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-Para detalhes de decisões arquiteturais e execução passo a passo, consulte o relatório em `planejamento/relatorio-execucao.md`.
+---
+
+## ✅ Boas Práticas Implementadas
+
+### Backend (Java/Spring Boot)
+
+| Prática | Implementação |
+|---------|---------------|
+| **Arquitetura em Camadas** | Pacotes `api`, `app`, `domain`, `infra` bem separados |
+| **DTOs** | Request/Response separados das entidades de domínio |
+| **Bean Validation** | `@NotNull`, `@NotBlank`, `@Min` nos DTOs |
+| **Exception Handling** | `@ControllerAdvice` com `GlobalExceptionHandler` |
+| **Documentação API** | Swagger/OpenAPI com anotações em todos os endpoints |
+| **CORS Configurado** | `WebConfig` permitindo frontend em desenvolvimento |
+| **Injeção de Dependência** | Constructor injection em todos os serviços |
+| **Imutabilidade** | Entidades com construtores validados e setters controlados |
+| **Versionamento Otimista** | `@Version` em todas as entidades para controle de concorrência |
+
+### EJB (Jakarta EE)
+
+| Prática | Implementação |
+|---------|---------------|
+| **Stateless Session Bean** | `@Stateless` para escalabilidade |
+| **Controle Transacional** | `@TransactionAttribute(REQUIRED)` |
+| **Locking Pessimista** | `LockModeType.PESSIMISTIC_WRITE` nas transferências |
+| **Exceções de Negócio** | Hierarquia de exceções específicas |
+| **Validação de Entrada** | Método `validateInput()` centralizado |
+
+### Frontend (Angular)
+
+| Prática | Implementação |
+|---------|---------------|
+| **Signals** | Estado reativo com `signal()` em vez de BehaviorSubject |
+| **OnPush** | `ChangeDetectionStrategy.OnPush` para performance |
+| **Standalone Components** | Sem NgModules desnecessários |
+| **Reactive Forms** | Formulários com validação reativa |
+| **Tratamento de Erros** | Mensagens amigáveis para o usuário |
+| **Loading States** | Feedback visual durante operações assíncronas |
+| **Tipagem Forte** | Interfaces TypeScript para todos os modelos |
+
+### Qualidade e CI/CD
+
+| Prática | Implementação |
+|---------|---------------|
+| **Testes Unitários** | JUnit 5 + Mockito no backend |
+| **Testes de Integração** | H2 em memória para testes |
+| **Testes de Concorrência** | Múltiplas threads testando transferências simultâneas |
+| **Testes Frontend** | Vitest com mocks de serviços |
+| **CI Paralelo** | GitHub Actions com jobs independentes |
+| **Caching** | Cache de dependências Maven e npm no CI |
 
 ---
 
-## 🚀 Como Executar o Projeto
+## 🚀 Como Executar
 
 ### Pré-requisitos
 
 - Java 17+
 - Maven 3.9+
-- Node.js 24+
+- Node.js 20+
 - Angular CLI 21+
 
-### Subir o Backend (Spring Boot)
+### Backend
 
 ```bash
 cd backend-module
 mvn spring-boot:run
 ```
+Acesse: http://localhost:8080
 
-Backend disponível em: `http://localhost:8080`
-
-### Subir o Frontend (Angular)
+### Frontend
 
 ```bash
 cd frontend
 npm install
 ng serve
 ```
+Acesse: http://localhost:4200
 
-Frontend disponível em: `http://localhost:4200`
+### Swagger UI
 
-### Banco de Dados
-
-Em desenvolvimento e testes automatizados é utilizado **H2 em memória**. Para cenários com banco externo, há scripts de exemplo em `db/`:
-
-```bash
-cd db
-# 1. Criar schema
-mysql -u root -p < schema.sql
-
-# 2. Dados iniciais
-mysql -u root -p < seed.sql
-```
+Com o backend rodando: http://localhost:8080/swagger-ui.html
 
 ---
 
@@ -98,139 +192,141 @@ mysql -u root -p < seed.sql
 
 ### Backend (`backend-module`)
 
-```text
+```
 backend-module/
 ├── src/main/java/com/transaction/beneficio/
-│   ├── api/            # Controllers REST e DTOs
-│   ├── app/            # Serviços de aplicação (inclui TransferService e TransferCorePort)
-│   ├── domain/         # Entidades de domínio e repositórios
-│   ├── infra/          # Implementações de infraestrutura (JPA, persistência)
-│   └── BackendApplication.java
-├── src/main/resources/
-│   └── application.properties
-└── pom.xml
+│   ├── api/
+│   │   ├── config/         # WebConfig, OpenApiConfig
+│   │   ├── controller/     # REST Controllers
+│   │   ├── dto/            # Request/Response DTOs
+│   │   └── error/          # GlobalExceptionHandler
+│   ├── app/                # Serviços de aplicação
+│   ├── domain/             # Entidades JPA
+│   └── infra/repository/   # Spring Data Repositories
+└── src/main/resources/
+    ├── application.properties
+    └── data.sql            # Dados de seed
 ```
 
 ### EJB (`ejb-module`)
 
-```text
+```
 ejb-module/
 ├── src/main/java/com/transaction/beneficio/ejb/
-│   ├── domain/         # Entidades e regras de domínio
-│   ├── app/            # Serviços EJB (ex.: BeneficioEjbService)
-│   ├── infra/          # Configuração JPA / persistência
-│   └── exception/      # Exceções de negócio
-├── src/main/resources/
-│   └── META-INF/persistence.xml
-└── pom.xml
+│   ├── app/                # BeneficioEjbService
+│   ├── domain/             # Entidades e regras
+│   └── exception/          # Exceções de negócio
+└── src/test/java/          # Testes de concorrência
 ```
 
 ### Frontend (`frontend`)
 
-```text
+```
 frontend/
 ├── src/app/
-│   ├── core/           # Serviços base, interceptors e cross-cutting
-│   ├── features/       # Funcionalidades de domínio (ex.: dashboard)
-│   └── shared/         # Componentes e models reutilizáveis
-├── angular.json
-└── package.json
+│   ├── core/               # Serviços HTTP
+│   ├── dashboard/          # Componente principal
+│   │   └── transfer-modal/ # Modal de transferência
+│   └── shared/
+│       ├── models/         # Interfaces TypeScript
+│       └── beneficio-card/ # Componentes reutilizáveis
+└── src/styles.css          # Estilos globais
 ```
 
 ---
 
-## 🔧 Tecnologias Principais
+## 🔧 Tecnologias
 
-- **Java 17 / Maven** – base da aplicação backend e EJB.
-- **Spring Boot 3.2.5** – API REST, integração com JPA, validação e testes.
-- **Jakarta EE / EJB 4.0** – camada de negócio core com transações e concorrência.
-- **Hibernate / JPA** – mapeamento ORM das entidades.
-- **H2 Database** – banco em memória para desenvolvimento e testes.
-- **Angular 21** – frontend SPA para consumo da API.
+| Camada | Tecnologia | Versão |
+|--------|------------|--------|
+| Backend | Java | 17 |
+| Backend | Spring Boot | 3.2.5 |
+| Backend | Spring Data JPA | 3.2.x |
+| Backend | SpringDoc OpenAPI | 2.3.0 |
+| EJB | Jakarta EE | 10 |
+| EJB | EJB | 4.0 |
+| Database | H2 | Runtime |
+| Frontend | Angular | 21 |
+| Frontend | TypeScript | 5.9 |
+| Testes | JUnit | 5 |
+| Testes | Vitest | 4.0 |
+| CI | GitHub Actions | - |
 
 ---
 
-## 🧪 Qualidade, Testes e CI
+## 🧪 Testes e Qualidade
 
-### Como rodar os testes localmente
+### Executar Testes
 
 ```bash
 # Backend
-cd backend-module
-mvn test
+cd backend-module && mvn test
 
-# EJB
-cd ../ejb-module
-mvn test
+# EJB (inclui testes de concorrência)
+cd ejb-module && mvn test
 
 # Frontend
-cd ../frontend
-npm test
+cd frontend && npm test
 ```
 
-### Estratégia de Testes
+### Cobertura de Testes
 
-- **Unitários** – focados em serviços, regras de negócio e controllers (MockMvc).
-- **Integração** – testes com banco H2 e cenários de domínio completos.
-- **Fluxo completo de transferência** – testes de integração via API garantindo o comportamento end-to-end.
-- **Concorrência (EJB)** – cenários que exercitam transferências simultâneas e locking.
+- **Backend**: Controllers, Services, DTOs
+- **EJB**: Transferências, validações, concorrência (10 threads simultâneas)
+- **Frontend**: Componentes, Services, integração
 
-### Integração Contínua
+### Testes de Concorrência Implementados
 
-- Workflow GitHub Actions em `.github/workflows/ci.yml`.
-- A cada push / pull request:
-  - Executa testes do `backend-module`.
-  - Executa testes do `ejb-module`.
-  - Executa testes do `frontend`.
-
-Objetivo: manter a **branch `main` sempre verde e estável**.
+```java
+@Test
+void shouldHandleHighConcurrencyTransfersSafely() {
+    // 10 threads transferindo simultaneamente
+    // Verifica integridade dos saldos após todas as operações
+}
+```
 
 ---
 
 ## 🌐 Documentação da API
 
-- A especificação detalhada dos endpoints REST (URLs, payloads, códigos de resposta, exemplos de request/response e formato de erros) está centralizada em:
+### Swagger UI
 
-  - [`docs/api-endpoints.md`](api-endpoints.md)
+Acesse http://localhost:8080/swagger-ui.html para documentação interativa.
 
-Esse arquivo é a referência única para o contrato HTTP do backend.
+### Endpoints
 
----
-
-## 🚀 Deploy (Visão Geral)
-
-### Build
-
-```bash
-mvn clean package
-```
-
-### Executar backend localmente via JAR
-
-```bash
-java -jar backend-module/target/backend-module-0.0.1-SNAPSHOT.jar
-```
-
-### Build e deploy do frontend
-
-```bash
-cd frontend
-npm run build
-```
-
-Para cenários de containerização, é possível criar uma imagem Docker a partir da raiz do projeto (Dockerfile opcional).
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/api/v1/beneficios` | Listar benefícios |
+| POST | `/api/v1/beneficios` | Criar benefício |
+| PUT | `/api/v1/beneficios/{id}` | Atualizar benefício |
+| DELETE | `/api/v1/beneficios/{id}` | Excluir benefício |
+| GET | `/api/v1/clientes` | Listar clientes/colaboradores |
+| POST | `/api/v1/clientes` | Criar cliente |
+| PUT | `/api/v1/clientes/{id}` | Atualizar cliente |
+| DELETE | `/api/v1/clientes/{id}` | Excluir cliente |
+| GET | `/api/v1/contas-beneficio` | Listar contas com saldos |
+| POST | `/api/v1/contas-beneficio` | Criar conta de benefício |
+| POST | `/api/v1/transfers` | Realizar transferência |
+| GET | `/api/v1/transacoes` | Histórico de transações |
 
 ---
 
-## � Status Atual do Projeto
+## 📊 Critérios de Avaliação Atendidos
 
-- **Backend:** completo (serviços, API REST, DTOs, validação, tratamento de erros e testes).
-- **EJB:** núcleo de negócio implementado com suporte a cenários de concorrência e testes dedicados.
-- **Frontend:** estrutura Angular criada e pronta para evolução.
+| Critério | Peso | Status | Implementação |
+|----------|------|--------|---------------|
+| **Arquitetura em Camadas** | 20% | ✅ | DB → EJB → Backend → Frontend com separação clara |
+| **Correção EJB** | 20% | ✅ | Locking pessimista, validações, testes de concorrência |
+| **CRUD + Transferência** | 15% | ✅ | CRUD completo + transferência com histórico |
+| **Qualidade de Código** | 10% | ✅ | DTOs, validação, exception handling, clean code |
+| **Testes** | 15% | ✅ | Unitários, integração e concorrência |
+| **Documentação** | 10% | ✅ | Swagger, README detalhado |
+| **Frontend** | 10% | ✅ | Angular moderno com UX polida |
 
 ---
 
-## � Licença
+## 📄 Licença
 
 MIT License – consulte o arquivo `LICENSE` para mais detalhes.
 

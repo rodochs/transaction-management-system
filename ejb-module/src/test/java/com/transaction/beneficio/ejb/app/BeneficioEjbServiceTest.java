@@ -215,4 +215,158 @@ class BeneficioEjbServiceTest {
             em2.close();
         }
     }
+
+    @Test
+    void shouldHandleHighConcurrencyTransfersSafely() throws InterruptedException {
+        final int NUM_THREADS = 10;
+        final BigDecimal TRANSFER_AMOUNT = new BigDecimal("10.00");
+        final BigDecimal INITIAL_BALANCE = new BigDecimal("1000.00");
+
+        Long fromId;
+        Long toId;
+
+        EntityManager setupEm = emf.createEntityManager();
+        try {
+            fromId = createAccount(setupEm, INITIAL_BALANCE);
+            toId = createAccount(setupEm, BigDecimal.ZERO);
+        } finally {
+            setupEm.close();
+        }
+
+        ExecutorService executor = Executors.newFixedThreadPool(NUM_THREADS);
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch endLatch = new CountDownLatch(NUM_THREADS);
+
+        final Long finalFromId = fromId;
+        final Long finalToId = toId;
+
+        for (int i = 0; i < NUM_THREADS; i++) {
+            executor.submit(() -> {
+                EntityManager em = emf.createEntityManager();
+                try {
+                    startLatch.await();
+                    BeneficioEjbService service = createService(em);
+                    em.getTransaction().begin();
+                    service.transfer(finalFromId, finalToId, TRANSFER_AMOUNT);
+                    em.getTransaction().commit();
+                } catch (Exception e) {
+                    if (em.getTransaction().isActive()) {
+                        em.getTransaction().rollback();
+                    }
+                } finally {
+                    em.close();
+                    endLatch.countDown();
+                }
+            });
+        }
+
+        startLatch.countDown();
+        endLatch.await(30, TimeUnit.SECONDS);
+        executor.shutdownNow();
+
+        EntityManager verifyEm = emf.createEntityManager();
+        try {
+            ContaBeneficio from = verifyEm.find(ContaBeneficio.class, fromId);
+            ContaBeneficio to = verifyEm.find(ContaBeneficio.class, toId);
+
+            BigDecimal totalMoved = TRANSFER_AMOUNT.multiply(new BigDecimal(NUM_THREADS));
+            BigDecimal expectedFrom = INITIAL_BALANCE.subtract(totalMoved);
+
+            assertEquals(expectedFrom, from.getSaldo());
+            assertEquals(totalMoved, to.getSaldo());
+        } finally {
+            verifyEm.close();
+        }
+    }
+
+    @Test
+    void shouldFailWhenTransferExceedsAvailableBalance() {
+        EntityManager em = emf.createEntityManager();
+        try {
+            Long fromId = createAccount(em, new BigDecimal("100.00"));
+            Long toId = createAccount(em, new BigDecimal("0.00"));
+
+            BeneficioEjbService service = createService(em);
+
+            em.getTransaction().begin();
+            assertThrows(SaldoInsuficienteException.class,
+                    () -> service.transfer(fromId, toId, new BigDecimal("100.01")));
+            em.getTransaction().rollback();
+
+            ContaBeneficio from = em.find(ContaBeneficio.class, fromId);
+            assertEquals(new BigDecimal("100.00"), from.getSaldo());
+        } finally {
+            em.close();
+        }
+    }
+
+    @Test
+    void shouldTransferExactBalance() {
+        EntityManager em = emf.createEntityManager();
+        try {
+            Long fromId = createAccount(em, new BigDecimal("100.00"));
+            Long toId = createAccount(em, new BigDecimal("0.00"));
+
+            BeneficioEjbService service = createService(em);
+
+            em.getTransaction().begin();
+            service.transfer(fromId, toId, new BigDecimal("100.00"));
+            em.getTransaction().commit();
+
+            ContaBeneficio from = em.find(ContaBeneficio.class, fromId);
+            ContaBeneficio to = em.find(ContaBeneficio.class, toId);
+
+            assertEquals(BigDecimal.ZERO.setScale(2), from.getSaldo().setScale(2));
+            assertEquals(new BigDecimal("100.00"), to.getSaldo());
+        } finally {
+            em.close();
+        }
+    }
+
+    @Test
+    void shouldHandleSmallAmountTransfer() {
+        EntityManager em = emf.createEntityManager();
+        try {
+            Long fromId = createAccount(em, new BigDecimal("100.00"));
+            Long toId = createAccount(em, new BigDecimal("0.00"));
+
+            BeneficioEjbService service = createService(em);
+
+            em.getTransaction().begin();
+            service.transfer(fromId, toId, new BigDecimal("0.01"));
+            em.getTransaction().commit();
+
+            ContaBeneficio from = em.find(ContaBeneficio.class, fromId);
+            ContaBeneficio to = em.find(ContaBeneficio.class, toId);
+
+            assertEquals(new BigDecimal("99.99"), from.getSaldo());
+            assertEquals(new BigDecimal("0.01"), to.getSaldo());
+        } finally {
+            em.close();
+        }
+    }
+
+    @Test
+    void shouldHandleLargeAmountTransfer() {
+        EntityManager em = emf.createEntityManager();
+        try {
+            BigDecimal largeAmount = new BigDecimal("999999999.99");
+            Long fromId = createAccount(em, largeAmount);
+            Long toId = createAccount(em, BigDecimal.ZERO);
+
+            BeneficioEjbService service = createService(em);
+
+            em.getTransaction().begin();
+            service.transfer(fromId, toId, largeAmount);
+            em.getTransaction().commit();
+
+            ContaBeneficio from = em.find(ContaBeneficio.class, fromId);
+            ContaBeneficio to = em.find(ContaBeneficio.class, toId);
+
+            assertEquals(BigDecimal.ZERO.setScale(2), from.getSaldo().setScale(2));
+            assertEquals(largeAmount, to.getSaldo());
+        } finally {
+            em.close();
+        }
+    }
 }
