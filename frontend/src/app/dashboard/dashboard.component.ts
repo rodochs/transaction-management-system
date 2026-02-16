@@ -73,13 +73,6 @@ export class DashboardComponent implements OnInit {
     return contas.reduce((sum, c) => sum + c.saldo, 0);
   }
 
-  getBeneficioNome(beneficioId: number): string {
-    const beneficios = this.beneficios();
-    if (!beneficios) return '';
-    const b = beneficios.find(x => x.id === beneficioId);
-    return b ? b.nome : '';
-  }
-
   trackById(index: number, item: Beneficio): number {
     return item.id;
   }
