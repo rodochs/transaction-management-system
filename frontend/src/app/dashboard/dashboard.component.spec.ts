@@ -53,8 +53,8 @@ describe('DashboardComponent', () => {
       { id: 1, nome: 'Vale Alimentação', descricao: 'Cartão alimentação', valor: 500, ativo: true },
     ];
     const contasMock: ContaBeneficio[] = [
-      { id: 1, clienteId: 1, clienteNome: 'Ana Silva', beneficioId: 1, saldo: 1000 },
-      { id: 2, clienteId: 2, clienteNome: 'Bruno Santos', beneficioId: 1, saldo: 500 },
+      { id: 1, clienteId: 1, clienteNome: 'Ana Silva', beneficioId: 1, beneficioNome: 'Vale Alimentação', saldo: 1000 },
+      { id: 2, clienteId: 2, clienteNome: 'Bruno Santos', beneficioId: 1, beneficioNome: 'Vale Alimentação', saldo: 500 },
     ];
 
     beneficioService.getBeneficios = () => of(beneficiosMock);
@@ -83,9 +83,9 @@ describe('DashboardComponent', () => {
 
   it('should calculate total balance correctly', () => {
     const contasMock: ContaBeneficio[] = [
-      { id: 1, clienteId: 1, clienteNome: 'Ana', beneficioId: 1, saldo: 100 },
-      { id: 2, clienteId: 2, clienteNome: 'Bruno', beneficioId: 1, saldo: 200 },
-      { id: 3, clienteId: 3, clienteNome: 'Carla', beneficioId: 1, saldo: 300 },
+      { id: 1, clienteId: 1, clienteNome: 'Ana', beneficioId: 1, beneficioNome: 'Vale Alimentação', saldo: 100 },
+      { id: 2, clienteId: 2, clienteNome: 'Bruno', beneficioId: 1, beneficioNome: 'Vale Alimentação', saldo: 200 },
+      { id: 3, clienteId: 3, clienteNome: 'Carla', beneficioId: 1, beneficioNome: 'Vale Alimentação', saldo: 300 },
     ];
 
     beneficioService.getBeneficios = () => of([]);

@@ -26,8 +26,8 @@ describe('ContaBeneficioService', () => {
 
   it('should fetch all contas', () => {
     const mockContas: ContaBeneficio[] = [
-      { id: 1, clienteId: 1, clienteNome: 'Cliente 1', beneficioId: 1, saldo: 1000 },
-      { id: 2, clienteId: 1, clienteNome: 'Cliente 1', beneficioId: 2, saldo: 500 },
+      { id: 1, clienteId: 1, clienteNome: 'Cliente 1', beneficioId: 1, beneficioNome: 'Vale Alimentação', saldo: 1000 },
+      { id: 2, clienteId: 1, clienteNome: 'Cliente 1', beneficioId: 2, beneficioNome: 'Vale Refeição', saldo: 500 },
     ];
 
     service.getContas().subscribe((contas) => {
@@ -41,7 +41,7 @@ describe('ContaBeneficioService', () => {
   });
 
   it('should fetch conta by id', () => {
-    const mockConta: ContaBeneficio = { id: 1, clienteId: 1, clienteNome: 'Cliente 1', beneficioId: 1, saldo: 1000 };
+    const mockConta: ContaBeneficio = { id: 1, clienteId: 1, clienteNome: 'Cliente 1', beneficioId: 1, beneficioNome: 'Vale Alimentação', saldo: 1000 };
 
     service.getContaById(1).subscribe((conta) => {
       expect(conta).toEqual(mockConta);
