@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/contas-beneficio")
@@ -28,6 +30,13 @@ public class ContaBeneficioController {
         this.contaRepository = contaRepository;
         this.clienteRepository = clienteRepository;
         this.beneficioRepository = beneficioRepository;
+    }
+
+    @GetMapping
+    public List<ContaBeneficioResponse> listAll() {
+        return contaRepository.findAll().stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
@@ -58,6 +67,7 @@ public class ContaBeneficioController {
         return new ContaBeneficioResponse(
                 conta.getId(),
                 conta.getCliente().getId(),
+                conta.getCliente().getNome(),
                 conta.getBeneficio().getId(),
                 conta.getSaldo()
         );
