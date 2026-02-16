@@ -9,23 +9,31 @@
 
     <form [formGroup]="form" (ngSubmit)="submit()" class="modal__body">
       <div class="form-field">
-        <label for="fromAccountId">Conta de origem (ID)</label>
-        <input
+        <label for="fromAccountId">Conta de origem</label>
+        <select
           id="fromAccountId"
-          type="number"
           formControlName="fromAccountId"
           [class.form-field__input--invalid]="form.controls.fromAccountId.invalid && form.controls.fromAccountId.touched"
-        />
+        >
+          <option [value]="0" disabled>Selecione uma conta</option>
+          <option *ngFor="let conta of contas()" [value]="conta.id">
+            {{ conta.id }} - {{ conta.clienteNome }} (Saldo: R$ {{ conta.saldo | number:'1.2-2' }})
+          </option>
+        </select>
       </div>
 
       <div class="form-field">
-        <label for="toAccountId">Conta de destino (ID)</label>
-        <input
+        <label for="toAccountId">Conta de destino</label>
+        <select
           id="toAccountId"
-          type="number"
           formControlName="toAccountId"
           [class.form-field__input--invalid]="form.controls.toAccountId.invalid && form.controls.toAccountId.touched"
-        />
+        >
+          <option [value]="0" disabled>Selecione uma conta</option>
+          <option *ngFor="let conta of contas()" [value]="conta.id">
+            {{ conta.id }} - {{ conta.clienteNome }}
+          </option>
+        </select>
       </div>
 
       <div class="form-field">
@@ -46,7 +54,7 @@
         <button type="button" class="button button--secondary" (click)="close()" [disabled]="loading()">
           Cancelar
         </button>
-        <button type="submit" class="button button--primary" [disabled]="loading()">
+        <button type="submit" class="button button--primary" [disabled]="loading() || loadingContas()">
           {{ loading() ? 'Enviando...' : 'Confirmar transferência' }}
         </button>
       </footer>
