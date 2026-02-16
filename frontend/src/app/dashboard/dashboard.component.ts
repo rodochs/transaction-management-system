@@ -1,45 +1,61 @@
-import { NgForOf, NgIf } from '@angular/common';
+import { CommonModule, CurrencyPipe, DatePipe, NgForOf, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, signal } from '@angular/core';
-import { catchError, finalize, of } from 'rxjs';
+import { catchError, forkJoin, of } from 'rxjs';
 import { BeneficioService } from '../core/beneficio.service';
+import { ContaBeneficioService } from '../core/conta-beneficio.service';
+import { TransacaoBeneficioService } from '../core/transacao-beneficio.service';
 import { Beneficio } from '../shared/models/beneficio.model';
-import { BeneficioCardComponent } from '../shared/beneficio-card/beneficio-card.component';
+import { ContaBeneficio } from '../shared/models/conta-beneficio.model';
+import { TransacaoBeneficio } from '../shared/models/transacao-beneficio.model';
 import { TransferModalComponent } from './transfer-modal/transfer-modal.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [NgIf, NgForOf, BeneficioCardComponent, TransferModalComponent],
+  imports: [CommonModule, NgIf, NgForOf, CurrencyPipe, DatePipe, TransferModalComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardComponent implements OnInit {
   beneficios = signal<Beneficio[] | null>(null);
+  contas = signal<ContaBeneficio[] | null>(null);
+  transacoes = signal<TransacaoBeneficio[] | null>(null);
   loading = signal<boolean>(false);
   error = signal<string | null>(null);
   showTransferModal = signal<boolean>(false);
 
-  constructor(private readonly beneficioService: BeneficioService) {}
+  constructor(
+    private readonly beneficioService: BeneficioService,
+    private readonly contaBeneficioService: ContaBeneficioService,
+    private readonly transacaoBeneficioService: TransacaoBeneficioService
+  ) {}
 
   ngOnInit(): void {
-    this.loadBeneficios();
+    this.loadAllData();
   }
 
-  loadBeneficios(): void {
+  loadAllData(): void {
     this.loading.set(true);
     this.error.set(null);
 
-    this.beneficioService
-      .getBeneficios()
-      .pipe(
-        catchError((err) => {
-          this.error.set('Não foi possível carregar os benefícios. Tente novamente.');
-          return of([] as Beneficio[]);
-        }),
-        finalize(() => this.loading.set(false))
-      )
-      .subscribe((items) => this.beneficios.set(items));
+    forkJoin({
+      beneficios: this.beneficioService.getBeneficios().pipe(catchError(() => of([] as Beneficio[]))),
+      contas: this.contaBeneficioService.getContas().pipe(catchError(() => of([] as ContaBeneficio[]))),
+      transacoes: this.transacaoBeneficioService.listarTransacoes().pipe(catchError(() => of([] as TransacaoBeneficio[])))
+    }).subscribe({
+      next: (data) => {
+        this.beneficios.set(data.beneficios);
+        this.contas.set(data.contas);
+        this.transacoes.set(data.transacoes);
+      },
+      error: () => {
+        this.error.set('Não foi possível carregar os dados. Tente novamente.');
+      },
+      complete: () => {
+        this.loading.set(false);
+      }
+    });
   }
 
   openTransferModal(): void {
@@ -48,8 +64,20 @@ export class DashboardComponent implements OnInit {
 
   handleTransferCompleted(): void {
     this.showTransferModal.set(false);
-    // Após uma transferência bem-sucedida, recarrega os benefícios para refletir eventuais alterações de saldo
-    this.loadBeneficios();
+    this.loadAllData();
+  }
+
+  getTotalSaldo(): number {
+    const contas = this.contas();
+    if (!contas) return 0;
+    return contas.reduce((sum, c) => sum + c.saldo, 0);
+  }
+
+  getBeneficioNome(beneficioId: number): string {
+    const beneficios = this.beneficios();
+    if (!beneficios) return '';
+    const b = beneficios.find(x => x.id === beneficioId);
+    return b ? b.nome : '';
   }
 
   trackById(index: number, item: Beneficio): number {

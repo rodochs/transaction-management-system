@@ -1,44 +1,138 @@
 <section class="dashboard">
   <header class="dashboard-header">
-    <div>
+    <div class="dashboard-header__info">
       <h1 class="dashboard-title">Gestão de Benefícios</h1>
-      <p class="dashboard-subtitle">Visualize os benefícios disponíveis e seus valores.</p>
+      <p class="dashboard-subtitle">Gerencie contas e transferências de benefícios corporativos</p>
     </div>
     <div class="dashboard-header__actions">
-      <button type="button" class="refresh-button" (click)="loadBeneficios()" [disabled]="loading()">
-        Recarregar
+      <button type="button" class="btn btn--outline" (click)="loadAllData()" [disabled]="loading()">
+        <span class="btn__icon">↻</span> Atualizar
       </button>
-      <button type="button" class="primary-button" (click)="openTransferModal()" [disabled]="loading()">
-        Nova transferência
+      <button type="button" class="btn btn--primary" (click)="openTransferModal()" [disabled]="loading()">
+        <span class="btn__icon">+</span> Nova Transferência
       </button>
     </div>
   </header>
 
-  <div class="dashboard-content" *ngIf="loading(); else loadedState">
-    <p class="state-message">Carregando benefícios...</p>
+  <!-- Loading State -->
+  <div class="dashboard-loading" *ngIf="loading()">
+    <div class="spinner"></div>
+    <p>Carregando dados...</p>
   </div>
 
-  <ng-template #loadedState>
-    <div class="dashboard-content" *ngIf="error(); else successState">
-      <p class="state-message state-message--error">{{ error() }}</p>
-      <button type="button" class="retry-button" (click)="loadBeneficios()">Tentar novamente</button>
+  <!-- Error State -->
+  <div class="dashboard-error" *ngIf="error() && !loading()">
+    <div class="error-card">
+      <span class="error-icon">⚠</span>
+      <p>{{ error() }}</p>
+      <button type="button" class="btn btn--primary" (click)="loadAllData()">Tentar novamente</button>
     </div>
+  </div>
 
-    <ng-template #successState>
-      <div class="dashboard-content" *ngIf="beneficios() as items">
-        <p class="state-message" *ngIf="items.length === 0">
-          Nenhum benefício cadastrado até o momento.
-        </p>
-
-        <div class="cards-grid" *ngIf="items.length > 0">
-          <app-beneficio-card
-            *ngFor="let beneficio of items; trackBy: trackById"
-            [beneficio]="beneficio"
-          ></app-beneficio-card>
+  <!-- Main Content -->
+  <div class="dashboard-content" *ngIf="!loading() && !error()">
+    
+    <!-- Summary Cards -->
+    <div class="summary-grid">
+      <div class="summary-card summary-card--primary">
+        <div class="summary-card__icon">💰</div>
+        <div class="summary-card__content">
+          <span class="summary-card__value">{{ getTotalSaldo() | currency:'BRL':'symbol':'1.2-2' }}</span>
+          <span class="summary-card__label">Saldo Total</span>
         </div>
       </div>
-    </ng-template>
-  </ng-template>
+      <div class="summary-card">
+        <div class="summary-card__icon">📋</div>
+        <div class="summary-card__content">
+          <span class="summary-card__value">{{ contas()?.length || 0 }}</span>
+          <span class="summary-card__label">Contas Ativas</span>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card__icon">🎁</div>
+        <div class="summary-card__content">
+          <span class="summary-card__value">{{ beneficios()?.length || 0 }}</span>
+          <span class="summary-card__label">Tipos de Benefício</span>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card__icon">📊</div>
+        <div class="summary-card__content">
+          <span class="summary-card__value">{{ transacoes()?.length || 0 }}</span>
+          <span class="summary-card__label">Transações</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Grid: Accounts + Transactions -->
+    <div class="main-grid">
+      
+      <!-- Accounts Panel -->
+      <section class="panel">
+        <header class="panel__header">
+          <h2 class="panel__title">Contas de Benefício</h2>
+          <span class="panel__badge">{{ contas()?.length || 0 }}</span>
+        </header>
+        
+        <div class="panel__body">
+          <div class="empty-state" *ngIf="contas()?.length === 0">
+            <span class="empty-state__icon">📭</span>
+            <p>Nenhuma conta cadastrada</p>
+          </div>
+          
+          <div class="accounts-list" *ngIf="contas() && contas()!.length > 0">
+            <div class="account-card" *ngFor="let conta of contas()">
+              <div class="account-card__header">
+                <div class="account-card__avatar">{{ conta.clienteNome.charAt(0) }}</div>
+                <div class="account-card__info">
+                  <span class="account-card__name">{{ conta.clienteNome }}</span>
+                  <span class="account-card__type">{{ getBeneficioNome(conta.beneficioId) }}</span>
+                </div>
+              </div>
+              <div class="account-card__balance">
+                <span class="account-card__balance-label">Saldo</span>
+                <span class="account-card__balance-value">{{ conta.saldo | currency:'BRL':'symbol':'1.2-2' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Transactions Panel -->
+      <section class="panel">
+        <header class="panel__header">
+          <h2 class="panel__title">Últimas Transações</h2>
+          <span class="panel__badge">{{ transacoes()?.length || 0 }}</span>
+        </header>
+        
+        <div class="panel__body">
+          <div class="empty-state" *ngIf="transacoes()?.length === 0">
+            <span class="empty-state__icon">📝</span>
+            <p>Nenhuma transação realizada</p>
+          </div>
+          
+          <div class="transactions-list" *ngIf="transacoes() && transacoes()!.length > 0">
+            <div class="transaction-item" *ngFor="let tx of transacoes()">
+              <div class="transaction-item__icon" [ngClass]="'transaction-item__icon--' + tx.tipo.toLowerCase()">
+                <span *ngIf="tx.tipo === 'TRANSFERENCIA'">↔</span>
+                <span *ngIf="tx.tipo === 'CREDITO'">↓</span>
+                <span *ngIf="tx.tipo === 'DEBITO'">↑</span>
+              </div>
+              <div class="transaction-item__details">
+                <span class="transaction-item__type">{{ tx.tipo }}</span>
+                <span class="transaction-item__date">{{ tx.dataHora | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <div class="transaction-item__amount" [ngClass]="'transaction-item__amount--' + tx.tipo.toLowerCase()">
+                {{ tx.valor | currency:'BRL':'symbol':'1.2-2' }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Transfer Modal -->
   <app-transfer-modal
     *ngIf="showTransferModal()"
     (closed)="showTransferModal.set(false)"
