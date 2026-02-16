@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, development]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
   backend:
@@ -18,11 +18,8 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-      - name: Run backend tests with coverage
-        run: mvn -f backend-module/pom.xml test jacoco:report
-      - name: Check coverage threshold
-        run: |
-          echo "Coverage report generated at backend-module/target/site/jacoco"
+      - name: Run backend tests
+        run: mvn -f backend-module/pom.xml test -q
 
   ejb:
     name: EJB Module Tests
@@ -35,8 +32,8 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-      - name: Run EJB tests with coverage
-        run: mvn -f ejb-module/pom.xml test jacoco:report
+      - name: Run EJB tests
+        run: mvn -f ejb-module/pom.xml test -q
 
   frontend:
     name: Frontend Tests
@@ -54,7 +51,7 @@ jobs:
         run: npm ci
       - name: Run tests
         working-directory: frontend
-        run: npm test
+        run: npm test -- --watch=false
       - name: Build production
         working-directory: frontend
         run: npm run build
@@ -72,4 +69,4 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - name: Build all modules
-        run: mvn -f backend-module/pom.xml package -DskipTests
+        run: mvn -f backend-module/pom.xml package -DskipTests -q
