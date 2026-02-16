@@ -1,0 +1,37 @@
+<section class="dashboard">
+  <header class="dashboard-header">
+    <div>
+      <h1 class="dashboard-title">Gestão de Benefícios</h1>
+      <p class="dashboard-subtitle">Visualize os benefícios disponíveis e seus valores.</p>
+    </div>
+    <button type="button" class="refresh-button" (click)="loadBeneficios()" [disabled]="loading()">
+      Recarregar
+    </button>
+  </header>
+
+  <div class="dashboard-content" *ngIf="loading(); else loadedState">
+    <p class="state-message">Carregando benefícios...</p>
+  </div>
+
+  <ng-template #loadedState>
+    <div class="dashboard-content" *ngIf="error(); else successState">
+      <p class="state-message state-message--error">{{ error() }}</p>
+      <button type="button" class="retry-button" (click)="loadBeneficios()">Tentar novamente</button>
+    </div>
+
+    <ng-template #successState>
+      <div class="dashboard-content" *ngIf="beneficios() as items">
+        <p class="state-message" *ngIf="items.length === 0">
+          Nenhum benefício cadastrado até o momento.
+        </p>
+
+        <div class="cards-grid" *ngIf="items.length > 0">
+          <app-beneficio-card
+            *ngFor="let beneficio of items; trackBy: trackById"
+            [beneficio]="beneficio"
+          ></app-beneficio-card>
+        </div>
+      </div>
+    </ng-template>
+  </ng-template>
+</section>

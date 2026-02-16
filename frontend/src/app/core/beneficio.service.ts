@@ -5,7 +5,7 @@ import { Beneficio } from '../shared/models/beneficio.model';
 
 @Injectable({ providedIn: 'root' })
 export class BeneficioService {
-  private readonly baseUrl = '/api/v1/beneficios';
+  private readonly baseUrl = 'http://localhost:8080/api/v1/beneficios';
 
   constructor(private http: HttpClient) {}
 
