@@ -1,10 +1,11 @@
 package com.transaction.beneficio.app;
 
 import com.transaction.beneficio.domain.ContaBeneficio;
+import com.transaction.beneficio.domain.TransacaoBeneficio;
 import com.transaction.beneficio.infra.repository.ContaBeneficioRepository;
+import com.transaction.beneficio.infra.repository.TransacaoBeneficioRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -12,11 +13,14 @@ import java.math.BigDecimal;
 public class TransferCorePortConfig {
 
     @Bean
-    @Transactional
-    public TransferCorePort transferCorePort(ContaBeneficioRepository contaBeneficioRepository) {
+    public TransferCorePort transferCorePort(ContaBeneficioRepository contaBeneficioRepository,
+                                              TransacaoBeneficioRepository transacaoBeneficioRepository) {
         return (fromAccountId, toAccountId, amount) -> {
             if (fromAccountId == null || toAccountId == null || amount == null) {
                 throw new IllegalArgumentException("Invalid transfer parameters");
+            }
+            if (fromAccountId.equals(toAccountId)) {
+                throw new IllegalArgumentException("Conta origem e destino devem ser diferentes");
             }
             if (amount.compareTo(BigDecimal.ZERO) <= 0) {
                 throw new IllegalArgumentException("Amount must be greater than zero");
@@ -36,6 +40,14 @@ public class TransferCorePortConfig {
 
             contaBeneficioRepository.save(origem);
             contaBeneficioRepository.save(destino);
+
+            TransacaoBeneficio transacao = new TransacaoBeneficio(
+                    origem,
+                    destino,
+                    amount,
+                    TransacaoBeneficio.TipoTransacao.TRANSFERENCIA
+            );
+            transacaoBeneficioRepository.save(transacao);
         };
     }
 }
