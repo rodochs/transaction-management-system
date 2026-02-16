@@ -88,6 +88,7 @@ public class ContaBeneficioController {
                 conta.getCliente().getId(),
                 conta.getCliente().getNome(),
                 conta.getBeneficio().getId(),
+                conta.getBeneficio().getNome(),
                 conta.getSaldo()
         );
     }
