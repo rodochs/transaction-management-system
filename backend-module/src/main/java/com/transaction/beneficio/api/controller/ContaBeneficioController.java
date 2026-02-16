@@ -8,6 +8,11 @@ import com.transaction.beneficio.domain.ContaBeneficio;
 import com.transaction.beneficio.infra.repository.ContaBeneficioRepository;
 import com.transaction.beneficio.infra.repository.BeneficioRepository;
 import com.transaction.beneficio.infra.repository.ClienteRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +23,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/contas-beneficio")
+@Tag(name = "Contas de Benefício", description = "Gerenciamento de contas de benefício dos colaboradores")
 public class ContaBeneficioController {
 
     private final ContaBeneficioRepository contaRepository;
@@ -33,6 +39,8 @@ public class ContaBeneficioController {
     }
 
     @GetMapping
+    @Operation(summary = "Listar contas", description = "Retorna todas as contas de benefício com saldos atuais")
+    @ApiResponse(responseCode = "200", description = "Lista de contas retornada com sucesso")
     public List<ContaBeneficioResponse> listAll() {
         return contaRepository.findAll().stream()
                 .map(this::toResponse)
@@ -40,13 +48,24 @@ public class ContaBeneficioController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ContaBeneficioResponse> getById(@PathVariable Long id) {
+    @Operation(summary = "Buscar conta por ID", description = "Retorna uma conta de benefício específica")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Conta encontrada"),
+            @ApiResponse(responseCode = "404", description = "Conta não encontrada")
+    })
+    public ResponseEntity<ContaBeneficioResponse> getById(
+            @Parameter(description = "ID da conta") @PathVariable Long id) {
         return contaRepository.findById(id)
                 .map(conta -> ResponseEntity.ok(toResponse(conta)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
+    @Operation(summary = "Criar conta", description = "Cria uma nova conta de benefício para um colaborador")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Conta criada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos")
+    })
     public ResponseEntity<ContaBeneficioResponse> create(@Valid @RequestBody ContaBeneficioRequest request) {
         Cliente cliente = clienteRepository.findById(request.getClienteId())
                 .orElseThrow(() -> new IllegalArgumentException("Cliente not found: " + request.getClienteId()));
