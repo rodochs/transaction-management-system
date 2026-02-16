@@ -21,17 +21,13 @@ export class TransferModalComponent {
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
 
-  readonly form = this.buildForm();
+  form = new FormBuilder().nonNullable.group({
+    fromAccountId: [0, [Validators.required, Validators.min(1)]],
+    toAccountId: [0, [Validators.required, Validators.min(1)]],
+    amount: [0, [Validators.required, Validators.min(0.01)]],
+  });
 
-  constructor(private readonly fb: FormBuilder, private readonly transferService: TransferService) {}
-
-  private buildForm() {
-    return this.fb.nonNullable.group({
-      fromAccountId: [0, [Validators.required, Validators.min(1)]],
-      toAccountId: [0, [Validators.required, Validators.min(1)]],
-      amount: [0, [Validators.required, Validators.min(0.01)]],
-    });
-  }
+  constructor(private readonly transferService: TransferService) {}
 
   submit(): void {
     if (this.form.invalid) {
