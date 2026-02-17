@@ -34,7 +34,7 @@ Este documento detalha a configuração Docker do projeto Transaction Management
 ```bash
 # Ubuntu/Debian
 sudo apt update
-sudo apt install docker.io docker-compose
+sudo apt install docker.io
 sudo usermod -aG docker $USER
 # Fazer logout e login novamente
 ```
@@ -61,13 +61,13 @@ git clone https://github.com/seu-usuario/transaction-management-system.git
 cd transaction-management-system
 
 # Iniciar todos os serviços
-docker-compose up -d
+docker compose up -d
 
 # Verificar status
-docker-compose ps
+docker compose ps
 
 # Ver logs
-docker-compose logs -f
+docker compose logs -f
 ```
 
 **Acessar:**
@@ -78,26 +78,54 @@ docker-compose logs -f
 ### Ambiente de Desenvolvimento (H2)
 
 ```bash
-docker-compose -f docker-compose.dev.yml up -d
+docker compose -f docker-compose.dev.yml up -d
 ```
 
 **Acessar:**
 - Frontend: http://localhost:4200
 - Backend: http://localhost:8080
 
-## Comandos com Makefile
+## Comandos Docker Compose
+
+### Produção (PostgreSQL)
 
 ```bash
-make help         # Lista todos os comandos
-make build        # Constrói as imagens
-make up           # Inicia produção (PostgreSQL)
-make up-dev       # Inicia desenvolvimento (H2)
-make down         # Para containers
-make logs         # Visualiza logs
-make logs-backend # Logs apenas do backend
-make clean        # Remove tudo (containers, imagens, volumes)
-make ps           # Lista containers em execução
-make test         # Executa testes
+# Construir imagens
+docker compose build
+
+# Iniciar serviços
+docker compose up -d
+
+# Parar serviços
+docker compose down
+
+# Ver logs
+docker compose logs -f
+
+# Logs de um serviço específico
+docker compose logs -f backend
+docker compose logs -f frontend
+docker compose logs -f postgres
+
+# Listar containers
+docker compose ps
+
+# Remover tudo (containers, volumes, imagens)
+docker compose down -v
+docker rmi transaction-management-system-backend transaction-management-system-frontend
+```
+
+### Desenvolvimento (H2)
+
+```bash
+# Iniciar
+docker compose -f docker-compose.dev.yml up -d
+
+# Parar
+docker compose -f docker-compose.dev.yml down
+
+# Ver logs
+docker compose -f docker-compose.dev.yml logs -f
 ```
 
 ## Estrutura de Arquivos
@@ -119,7 +147,6 @@ docker/
 
 docker-compose.yml           # Orquestração de produção
 docker-compose.dev.yml       # Orquestração de desenvolvimento
-Makefile                     # Comandos de conveniência
 .dockerignore                # Arquivos ignorados no build
 .env.example                 # Exemplo de variáveis de ambiente
 ```

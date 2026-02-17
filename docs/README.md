@@ -174,7 +174,7 @@ O sistema segue uma **arquitetura em camadas** clara e bem definida:
 ### 🐳 Com Docker (Recomendado)
 
 **Pré-requisitos**: Apenas Docker instalado
-- Linux: `apt install docker.io docker-compose`
+- Linux: `apt install docker.io`
 - macOS/Windows: Docker Desktop
 
 ```bash
@@ -183,10 +183,7 @@ git clone https://github.com/rodochs/transaction-management-system.git
 cd transaction-management-system
 
 # Iniciar ambiente completo (PostgreSQL)
-docker-compose up -d
-
-# Ou usar Makefile
-make up
+docker compose up -d
 ```
 
 **Acessar:**
@@ -196,10 +193,10 @@ make up
 
 **Comandos úteis:**
 ```bash
-make help       # Lista todos os comandos
-make logs       # Ver logs em tempo real
-make down       # Parar containers
-make clean      # Limpar tudo
+docker compose logs -f      # Ver logs em tempo real
+docker compose down         # Parar containers
+docker compose down -v      # Parar e remover volumes
+docker compose ps           # Listar containers
 ```
 
 > 📖 Documentação completa: [docs/DOCKER.md](DOCKER.md)
