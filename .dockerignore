@@ -1,0 +1,43 @@
+# Git
+.git
+.gitignore
+.github
+
+# IDEs
+.idea
+.vscode
+*.iml
+
+# Build artifacts
+**/target/
+**/dist/
+**/node_modules/
+**/.angular/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentação (não necessária no container)
+docs/
+planejamento/
+*.md
+!frontend/README.md
+
+# Testes
+**/coverage/
+**/*.spec.ts
+
+# Arquivos temporários
+*.tmp
+*.swp
+*~
+
+# Env files
+.env
+.env.local
+.env.*.local

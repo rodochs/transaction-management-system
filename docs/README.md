@@ -1,6 +1,8 @@
 # Sistema de Gestão de Benefícios Corporativos
 
 ![CI](https://github.com/rodochs/transaction-management-system/actions/workflows/ci.yml/badge.svg)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](docs/DOCKER.md)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 ![Java](https://img.shields.io/badge/Java-17-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-green)
 ![Angular](https://img.shields.io/badge/Angular-21-red)
@@ -62,6 +64,17 @@ O módulo EJB original continha um bug crítico na operação de transferência:
 - Angular 21 com **Signals** para gerenciamento de estado reativo
 - Componentes standalone com **ChangeDetectionStrategy.OnPush**
 - Design responsivo com CSS moderno (gradientes, sombras, animações)
+
+### Containerização Completa com Docker
+- **Multi-stage builds** para imagens otimizadas (backend ~200MB, frontend ~50MB)
+- **Docker Compose** para orquestração de múltiplos serviços
+- **Dois ambientes**: Produção (PostgreSQL) e Desenvolvimento (H2)
+- **Health checks** automáticos para garantir disponibilidade
+- **Proxy reverso Nginx** com configuração otimizada
+- **Volumes persistentes** para dados do PostgreSQL
+- **Rede isolada** para comunicação segura entre containers
+- **Makefile** com comandos convenientes multiplataforma
+- **Pronto para cloud**: AWS ECS, Azure Container Instances, Google Cloud Run, Kubernetes
 
 ---
 
@@ -158,23 +171,52 @@ O sistema segue uma **arquitetura em camadas** clara e bem definida:
 
 ## 🚀 Como Executar
 
-### Pré-requisitos
+### 🐳 Com Docker (Recomendado)
 
+**Pré-requisitos**: Apenas Docker instalado
+- Linux: `apt install docker.io`
+- macOS/Windows: Docker Desktop
+
+```bash
+# Clonar e iniciar
+git clone https://github.com/rodochs/transaction-management-system.git
+cd transaction-management-system
+
+# Iniciar ambiente completo (PostgreSQL)
+docker compose up -d
+```
+
+**Acessar:**
+- Frontend: http://localhost
+- Backend API: http://localhost:8080/api/v1
+- Swagger: http://localhost:8080/swagger-ui.html
+
+**Comandos úteis:**
+```bash
+docker compose logs -f      # Ver logs em tempo real
+docker compose down         # Parar containers
+docker compose down -v      # Parar e remover volumes
+docker compose ps           # Listar containers
+```
+
+> 📖 Documentação completa: [docs/DOCKER.md](DOCKER.md)
+
+### 💻 Execução Tradicional (Sem Docker)
+
+**Pré-requisitos:**
 - Java 17+
 - Maven 3.9+
 - Node.js 20+
 - Angular CLI 21+
 
-### Backend
-
+**Backend:**
 ```bash
 cd backend-module
 mvn spring-boot:run
 ```
 Acesse: http://localhost:8080
 
-### Frontend
-
+**Frontend:**
 ```bash
 cd frontend
 npm install
@@ -245,12 +287,14 @@ frontend/
 | Backend | SpringDoc OpenAPI | 2.3.0 |
 | EJB | Jakarta EE | 10 |
 | EJB | EJB | 4.0 |
-| Database | H2 | Runtime |
+| Database | H2 / PostgreSQL | Runtime |
 | Frontend | Angular | 21 |
 | Frontend | TypeScript | 5.9 |
 | Testes | JUnit | 5 |
 | Testes | Vitest | 4.0 |
 | CI | GitHub Actions | - |
+| Container | Docker | 20+ |
+| Container | Docker Compose | 2.x |
 
 ---
 

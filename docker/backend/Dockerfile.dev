@@ -1,0 +1,20 @@
+# Dockerfile para desenvolvimento com hot-reload
+FROM maven:3.9-eclipse-temurin-17
+WORKDIR /app
+
+# Instalar EJB module primeiro
+COPY ejb-module/pom.xml ./ejb-module/
+COPY ejb-module/src ./ejb-module/src
+RUN mvn -f ejb-module/pom.xml clean install -DskipTests -B -q
+
+# Copiar e preparar backend
+COPY backend-module/pom.xml ./backend-module/
+RUN mvn -f backend-module/pom.xml dependency:go-offline -B -q
+
+# Copiar código fonte
+COPY backend-module/src ./backend-module/src
+
+EXPOSE 8080
+
+# Rodar com spring-boot:run para hot-reload
+CMD ["mvn", "-f", "backend-module/pom.xml", "spring-boot:run", "-Dspring-boot.run.profiles=default"]
